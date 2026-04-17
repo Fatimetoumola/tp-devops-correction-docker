@@ -56,3 +56,7 @@ jobs:
           context: ./http-server
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
           push: ${{ github.ref == 'refs/heads/main' }}
+          
+      - name: Build and test with Maven
+        run: mvn clean verify
+        working-directory: ./simple-api
