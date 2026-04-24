@@ -1,0 +1,16 @@
+---
+- name: Run PostgreSQL database container
+  community.docker.docker_container:
+    name: "{{ database_container_name }}"
+    image: "{{ database_image }}"
+    pull: true
+    restart_policy: unless-stopped
+    state: started
+    env:
+      POSTGRES_DB: "{{ database_name }}"
+      POSTGRES_USER: "{{ database_user }}"
+      POSTGRES_PASSWORD: "{{ database_password }}"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - name: "{{ docker_network_name }}"

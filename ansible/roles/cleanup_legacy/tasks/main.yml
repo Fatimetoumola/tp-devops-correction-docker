@@ -1,0 +1,7 @@
+---
+- name: Remove legacy Docker Compose containers from previous deployment
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+    force_kill: true
+  loop: "{{ legacy_compose_containers }}"

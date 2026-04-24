@@ -1,0 +1,12 @@
+---
+- name: Run HTTPD reverse proxy container
+  community.docker.docker_container:
+    name: "{{ httpd_container_name }}"
+    image: "{{ httpd_image }}"
+    pull: true
+    restart_policy: unless-stopped
+    state: started
+    published_ports:
+      - "{{ http_port }}:80"
+    networks:
+      - name: "{{ docker_network_name }}"

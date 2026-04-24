@@ -1,0 +1,79 @@
+---
+- name: Remove conflicting Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - docker-doc
+      - podman-docker
+      - containerd
+      - runc
+    state: absent
+    purge: true
+  ignore_errors: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - python3
+      - python3-pip
+      - python3-venv
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure APT keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Add Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+    force: true
+
+- name: Configure Docker APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+    update_cache: true
+
+- name: Install Docker engine and related packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  notify: Restart docker
+
+- name: Add the remote user to the docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+
+- name: Create a virtual environment for Docker SDK
+  ansible.builtin.command: python3 -m venv {{ docker_venv_path }}
+  args:
+    creates: "{{ docker_venv_path }}"
+
+- name: Install Docker SDK for Python in the virtual environment
+  ansible.builtin.pip:
+    name: docker
+    virtualenv: "{{ docker_venv_path }}"
+
+- name: Ensure Docker is enabled and running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

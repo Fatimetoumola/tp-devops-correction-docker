@@ -1,0 +1,32 @@
+---
+- name: Install Docker prerequisites on the server
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - docker
+
+- name: Deploy the application with dedicated Docker roles
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ docker_module_python_interpreter }}"
+
+  roles:
+    - cleanup_legacy
+    - network
+    - database
+    - app
+    - proxy
+
+  tasks:
+    - name: Wait until the application answers over HTTP
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ http_port }}/"
+        status_code: 200
+      register: app_http_check
+      retries: 20
+      delay: 5
+      until: app_http_check.status == 200
