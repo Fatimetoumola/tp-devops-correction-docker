@@ -19,10 +19,11 @@
     - network
     - database
     - app
+    - front
     - proxy
 
   tasks:
-    - name: Wait until the application answers over HTTP
+    - name: Wait until the frontend answers over HTTP
       ansible.builtin.uri:
         url: "http://127.0.0.1:{{ http_port }}/"
         status_code: 200
@@ -30,3 +31,12 @@
       retries: 20
       delay: 5
       until: app_http_check.status == 200
+
+    - name: Wait until the API answers through the proxy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ http_port }}/api/departments"
+        status_code: 200
+      register: api_http_check
+      retries: 20
+      delay: 5
+      until: api_http_check.status == 200

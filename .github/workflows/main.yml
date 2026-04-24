@@ -37,8 +37,28 @@ jobs:
           -Dsonar.organization=fatimetoumola
           -Dsonar.projectKey=Fatimetoumola_tp-devops-correction-docker
 
+  test-frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
   build-and-push-docker-image:
-    needs: test-backend
+    needs:
+      - test-backend
+      - test-frontend
     runs-on: ubuntu-24.04
 
     steps:
@@ -72,3 +92,52 @@ jobs:
           context: ./http-server
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
           push: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build image and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-frontend:latest
+          push: ${{ github.ref == 'refs/heads/main' }}
+
+  deploy-to-server:
+    needs: build-and-push-docker-image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: production
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Install Ansible collection
+        working-directory: ./ansible
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Configure SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s" "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H fatimetou.abdel-mola.takima.school >> ~/.ssh/known_hosts
+
+      - name: Deploy with Ansible
+        working-directory: ./ansible
+        env:
+          ANSIBLE_PRIVATE_KEY_FILE: ~/.ssh/id_rsa
+        run: ansible-playbook -i inventories/setup.yml deploy.yml

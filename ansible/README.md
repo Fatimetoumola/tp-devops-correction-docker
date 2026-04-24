@@ -78,7 +78,7 @@ ansible-playbook -i inventories/setup.yml deploy.yml
 
 - [playbook.yml](/Users/souzi_mola/tp-devops-correction-docker/ansible/playbook.yml:1) vérifie juste la connectivité Ansible avec `ping`.
 - [docker.yml](/Users/souzi_mola/tp-devops-correction-docker/ansible/docker.yml:1) appelle le rôle [roles/docker](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/docker/tasks/main.yml:1) pour installer Docker sur Debian.
-- [deploy.yml](/Users/souzi_mola/tp-devops-correction-docker/ansible/deploy.yml:1) appelle les rôles `docker`, `network`, `database`, `app` et `proxy`.
+- [deploy.yml](/Users/souzi_mola/tp-devops-correction-docker/ansible/deploy.yml:1) appelle les rôles `docker`, `network`, `database`, `app`, `front` et `proxy`.
 
 ## Rôles utilisés
 
@@ -86,6 +86,7 @@ ansible-playbook -i inventories/setup.yml deploy.yml
 - [roles/network](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/network/tasks/main.yml:1) crée le réseau Docker applicatif avec `community.docker.docker_network`.
 - [roles/database](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/database/tasks/main.yml:1) lance PostgreSQL avec `community.docker.docker_container`.
 - [roles/app](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/app/tasks/main.yml:1) lance l’API Spring Boot avec ses variables d’environnement.
+- [roles/front](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/front/tasks/main.yml:1) lance le front Vue/Nginx.
 - [roles/proxy](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/proxy/tasks/main.yml:1) lance le proxy HTTPD exposé sur le port 80.
 - [roles/cleanup_legacy](/Users/souzi_mola/tp-devops-correction-docker/ansible/roles/cleanup_legacy/tasks/main.yml:1) supprime les anciens conteneurs `docker compose` pour éviter les conflits de port.
 
@@ -119,7 +120,8 @@ ansible all -i inventories/setup.yml -m shell -a "docker ps" --become
 
 ```bash
 curl http://fatimetou.abdel-mola.takima.school
-curl http://fatimetou.abdel-mola.takima.school/students
+curl http://fatimetou.abdel-mola.takima.school/api/departments
+curl http://fatimetou.abdel-mola.takima.school/api/students
 ```
 
 5. Vérifier en SSH si besoin :
@@ -129,6 +131,7 @@ ssh -i /Users/souzi_mola/Downloads/id_rsa admin@fatimetou.abdel-mola.takima.scho
 sudo docker ps
 sudo docker network inspect tp-devops-network
 curl http://localhost
+curl http://localhost/api/departments
 ```
 
 ## Références

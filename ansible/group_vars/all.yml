@@ -18,12 +18,15 @@ database_user: usr
 database_password: pwd
 database_container_name: database
 backend_container_name: simple-api
+frontend_container_name: frontend
 httpd_container_name: httpd
 legacy_compose_containers:
+  - tp-devops-frontend-1
   - tp-devops-httpd-1
   - tp-devops-simple-api-1
   - tp-devops-database-1
 
 database_image: "{{ dockerhub_username }}/tp-devops-database:latest"
 backend_image: "{{ dockerhub_username }}/tp-devops-simple-api:latest"
+frontend_image: "{{ dockerhub_username }}/tp-devops-frontend:latest"
 httpd_image: "{{ dockerhub_username }}/tp-devops-httpd:latest"

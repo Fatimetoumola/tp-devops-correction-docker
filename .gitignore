@@ -1,1 +1,6 @@
 .idea
+.DS_Store
+.ansible/
+*.retry
+frontend/node_modules/
+frontend/dist/
