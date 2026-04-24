@@ -6,11 +6,13 @@ L'inventaire du TP est défini dans [inventories/setup.yml](/Users/souzi_mola/tp
 
 Structure :
 - `all` regroupe tous les hôtes Ansible du projet ;
-- `vars` définit l'utilisateur SSH `admin` et le chemin de la clé privée ;
+- `vars` définit l'utilisateur SSH `admin` ;
 - `prod` est le groupe d'hôtes de production ;
 - `school-server` pointe vers `fatimetou.abdel-mola.takima.school`.
 
-Si le chemin de ta clé change, mets à jour `ansible_ssh_private_key_file` dans `inventories/setup.yml`.
+La clé privée n'est pas stockée dans l'inventaire.
+- en local, exporte `ANSIBLE_PRIVATE_KEY_FILE`
+- dans GitHub Actions, fournis le secret `SSH_PRIVATE_KEY`
 
 ## Pré-requis Ansible
 
@@ -20,6 +22,13 @@ Installation locale :
 
 ```bash
 ansible-galaxy collection install -r requirements.yml
+```
+
+Préparer la clé SSH en local :
+
+```bash
+chmod 400 /Users/souzi_mola/Downloads/id_rsa
+export ANSIBLE_PRIVATE_KEY_FILE=/Users/souzi_mola/Downloads/id_rsa
 ```
 
 ## Commandes de base
